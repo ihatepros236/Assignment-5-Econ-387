@@ -1,0 +1,191 @@
+---
+title: "Assignment 5"
+author: "Muhammad Ahmad, 301297154"
+output:
+  html_document: default
+  html_notebook: default
+---
+
+# Questions
+
+## Question 1
+
+Write a function that takes three arguments (type: `double`), and returns them sorted from largest to smallest, using `if`. Do not use auxiliary functions like `sort`. 
+
+* First, you will want your function to check that the arguments are doubles by using `is_double`, stop the function if it is not the case, and produce with an error message that tells you what went wrong. 
+
+* Then, There are several ways to write a function sorting the 3 arguments. The brute force way is to make an `if` statement for each possible combination of values (6 seperate statements) but there are other ways to approach this. 
+
+### Q1 Answers
+```{r}
+sort1<- function(a,b,c){
+  if(is.double(a)==1 & is.double(b)==1 & is.double(c)==1){
+  
+    if ((a>b) & (b>c) ){
+      d<-c(a,b,c)
+    return(d)
+    }
+    if((a>c)& (c>b)){
+      d<-c(a,c,b)
+  return(d)    
+    }
+  if ((b>a)& (a>c)){
+    d<-c(b,a,c)
+    return(d)
+  }
+    if((b>c)&(c>a)){
+      d<-c(b,c,a)
+      return(d)
+    }
+      
+  if ((c>a) & (a>b)){
+    d<-c(c, a ,b)
+    return(d)
+  }
+    if((c>b)& (b>a)){
+      d<-c(c,b,a)
+      return(d)
+    }
+  }
+  else {return(print("Not a double"))}
+
+}
+
+sort1(1,2,3)
+```
+
+## Question 2
+
+Write a function `duplicate` that does the following:
+
+```{r, eval=FALSE}
+duplicate(c(1,2,3)) : c(1,2,2,3,3,3)
+duplicate(c(1,3,10)) : c(1,3,3,3,10,10,10,10,10,10,10,10,10,10)
+duplicate(c(2,5)) : c(2,2,5,5,5,5,5)
+```
+
+and test it on 
+
+```{r}
+y1 <- c(3,1,9)
+y2 <- c(11,4,3,2,1)
+
+```
+
+
+First, write a function that uses a loop that cycles through the vector provided and performs what you want the function to accomplish. For example, the first iteration of the function on the vector `y1 <- c(5,2,9)` would create a vector of all 5's of length 5. For the loop itself on each element, the function `rep` should be useful. Note that you will want to create an initial result that is empty (the `NULL` value in R) and then add the result from each iteration so that you end up in the end with a single vector with the results. For `y1 <- c(5,2,9)`, you want your function to return `c(5,5,5,5,5,2,2,9,9,9,9,9,9,9,9,9)`.
+
+Is there an easier way to do this without a loop? If so, show us! 
+
+### Q2 Answers
+```{r}
+duplicate1<- function(a){
+  l<-length(a)
+  t=a[l]
+  t2=a[l-1]
+  v<-rep(c(a[l-1]), times=t2)
+  v2<-rep(a[l], times=t)
+  v3<-c(a[1],v,v2)
+  return(print(v3))
+}
+y<-c(1,2,3)
+y1 <- c(3,1,9)
+y2 <- c(11,4,3,2,1)
+  duplicate1(y)
+  duplicate1(y1)
+  duplicate1(y2)
+```
+
+## Question 3
+
+Download daily crime data for Vancouver from the Vancouver Police Department here "https://geodash.vpd.ca/opendata/". After agreeing to the conditions for use, you should be able to download a folder that contains a data file named "crimedata_csv_all_years.csv". 
+
+1. Read the data into R as a tibble called `vancrime` and briefly describe what is in the data. How many observations are there? What variables are captured? What does each observation represent? 
+```{r}
+library(tidyverse)
+library(dplyr)
+setwd("C:/Users/Muhammad/Projects/assignment 5")
+vancrime<-read_csv("crimedata_csv_all_years.csv")
+
+#1
+#There are 10 variables and 634278 observations.
+# variables include year, month, day, hour, minute, hundered block,neighbourhood and x,y cordinates.
+#an observation represents type of crime occured at specific time at specific location
+```
+
+2.  Write *one line of code* using the pipe function `%>%` that takes your `vancrime` tibble, keeps observations from years 2003 through 2019, and creates a horizontal bar chart that communicates the **total** number of residential break and enter crimes (the `TYPE` variable will be equal to "Break and Enter Residential/Other") by neighborhood. Include a title that is  ( so "Crime type: Total Break and Enter Residential/Other"") using `ggtitle` in your `ggplot`.  *Extra credit: can you figure out a way to sort in descending order so the neighborhoods with the most residential break ins are at the top?*
+
+#Answer
+```{r}
+filter(vancrime,YEAR>=2003 & YEAR<=2019)%>% group_by(NEIGHBOURHOOD)%>% summarise(total=sum(TYPE=="Break and Enter Residential/Other"))%>% ggplot(mapping = aes(y=total,x=reorder(NEIGHBOURHOOD,-total)))+ geom_bar(stat="identity")+ ggtitle("Crime type: Total Break and Enter Residential/Other")
+```
+
+
+
+3. Turn your code from part 2 into a function where the input to the function will be the type of crime. Test it out on a few different types of crime in your vancrime data.
+#answer
+```{r}
+bar_func<- function(arg){
+z<-filter(vancrime,YEAR>=2003 & YEAR<=2019)%>% group_by(NEIGHBOURHOOD)%>% summarise(total=sum(TYPE==arg))%>% ggplot(mapping = aes(y=total,x=reorder(NEIGHBOURHOOD,-total)))+ geom_bar(stat="identity")
+return (z)
+}
+
+type1<-"Break and Enter Commercial"	
+bar_func(type1)
+bar_func("Mischief")
+```
+4. Create a vector of the unique values of the `TYPE` variable (you can use the `unique()` function and use a for loop to produce your bar chart for every type of crime. Modify your function to produce a plot for each type of crime with the title of the plot the same value as the `TYPE` of crime, changing the neighborhood axis label to a blank space (" ") label (so removing "NEIGHBOURHOOD" from the left side) and labeling the count axis "Total incidents, 2003-2019" for each plot. *This is not an easy exercise, you may want to consider asisigning your plot within the function to an object and then having the function `print()` the object to get your loop to produce the graphs.
+
+```{r}
+c<-mutate(vancrime)
+c<-select(c,TYPE)
+d<-c(unique(c))
+
+new_func<- function(a){
+
+  for (i in 1:11) {
+   
+    z<-filter(vancrime,YEAR>=2003 & YEAR<=2019,is.na(NEIGHBOURHOOD)==0)%>% group_by(NEIGHBOURHOOD)%>% summarise(total=sum(TYPE==a[["TYPE"]][i]))%>% ggplot(mapping = aes(y=total,x=reorder(NEIGHBOURHOOD,-total)))+ geom_bar(stat="identity")+ggtitle(a[["TYPE"]][i])+xlab("")+ ylab("Total incidents")
+print(z)
+    
+  }
+}
+new_func(d)
+
+
+
+```
+
+
+5. Are there any plots that look strange (like have the neighborhood missing for all and just have one bar?) Go back and modify part 4 to remove data where the neighborhood is missing. 
+#done above with 4
+
+6. Using this daily crime data, perform some other exploratory data analysis where you incorporate both a function and a loop in your analysis. This cannot include the functions from above or be loops over the different types of crime. Be creative, there is a lot of data here. Extra points to the top 3 examples. **There should be absolutely no overlap or even similar answers to this question.**
+
+
+```{r}
+#NOTE: I have limited the number of neighbourhoods by providinng a custome size of list, we can easily use the same function for all neighbourhoods by inputing length of LIST_NEIGH as input l. I didn't want to look at unessary amount of graphs. Plus, ideally you would want to look at certain neighbourhoods.
+
+y<-mutate(vancrime)
+t<-select(y,NEIGHBOURHOOD)
+list_NEIGH<-c(unique(t))
+
+new_func1<- function(a,l){
+
+  for (i in 1:l) {
+   
+    d<-filter(vancrime,NEIGHBOURHOOD==a[["NEIGHBOURHOOD"]][i])%>%
+      group_by(HOUR)%>%
+      summarize(INCIDENTS=n())%>%
+     ggplot(mapping=aes(x=HOUR,y=INCIDENTS))+ geom_smooth(se=FALSE)+        ggtitle(a[["NEIGHBOURHOOD"]][i])
+print(d)
+    
+  }
+}
+new_func1(list_NEIGH,10)
+ 
+#THIS is very interestin, it seems that trend is quite similar across first 10 neighbourhood from my list. The lowest crime rate  is around 5am, and the peak crime rate varies a little depending on neighbourhood, However all peaks are after 3pm.     
+```
+
+
+
